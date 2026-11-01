@@ -185,6 +185,43 @@ const plantSchema = {
   ]
 };
 
+// Robust retry & model fallback for 503 / high demand spikes
+async function generateContentWithRetry(params: any): Promise<any> {
+  const models = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
+  let lastError: any = null;
+
+  for (const model of models) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const response = await ai.models.generateContent({
+          ...params,
+          model,
+        });
+        return response;
+      } catch (err: any) {
+        lastError = err;
+        const msg = String(err?.message || err || '');
+        const isUnavailable =
+          msg.includes('503') ||
+          msg.includes('high demand') ||
+          msg.includes('UNAVAILABLE') ||
+          msg.includes('RESOURCE_EXHAUSTED') ||
+          err?.status === 503 ||
+          err?.code === 503;
+
+        if (isUnavailable) {
+          console.warn(`[Gemini API] Model ${model} (attempt ${attempt}) busy: ${msg}. Retrying...`);
+          await new Promise((r) => setTimeout(r, 1000 * attempt));
+          continue;
+        }
+        throw err;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 // API Endpoint: Identify Plant from Image
 app.post('/api/identify-plant', async (req: Request, res: Response) => {
   try {
@@ -208,8 +245,7 @@ app.post('/api/identify-plant', async (req: Request, res: Response) => {
     const userPrompt = `يرجى تحليل صورة النبات هذه وتحديد تفاصيله بالكامل وفق الصيغة المحددة بدقة.
 ${userNote ? `ملاحظة إضافية من المستخدم: "${userNote}"` : ''}`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+    const response = await generateContentWithRetry({
       contents: [
         {
           role: 'user',
@@ -242,8 +278,13 @@ ${userNote ? `ملاحظة إضافية من المستخدم: "${userNote}"` : 
     return res.json(parsedData);
   } catch (error: any) {
     console.error('Plant identification error:', error);
+    let userMsg = 'حدث خطأ أثناء فحص النبات، يرجى المحاولة مرة أخرى بصورة أوضح';
+    const errText = String(error?.message || error || '');
+    if (errText.includes('503') || errText.includes('high demand') || errText.includes('UNAVAILABLE')) {
+      userMsg = 'تشهد خوادم الذكاء الاصطناعي ضغطاً مؤقتاً، يرجى الانتظار بضع ثوانٍ وإعادة الضغط على زر الفحص مرة أخرى.';
+    }
     return res.status(500).json({
-      error: error.message || 'حدث خطأ أثناء التعرف على النبات، يرجى المحاولة مرة أخرى بصورة أوضح',
+      error: userMsg,
     });
   }
 });
@@ -287,8 +328,7 @@ app.post('/api/chat-plant', async (req: Request, res: Response) => {
       parts: [{ text: message }],
     });
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+    const response = await generateContentWithRetry({
       contents: contents,
       config: {
         systemInstruction: systemPrompt,
@@ -298,8 +338,13 @@ app.post('/api/chat-plant', async (req: Request, res: Response) => {
     return res.json({ reply: response.text });
   } catch (error: any) {
     console.error('Chat plant error:', error);
+    let userMsg = 'حدث خطأ في محادثة خبير النباتات، يرجى المحاولة لاحقاً';
+    const errText = String(error?.message || error || '');
+    if (errText.includes('503') || errText.includes('high demand') || errText.includes('UNAVAILABLE')) {
+      userMsg = 'تشهد الخدمة ضغطاً مؤقتاً، يرجى الانتظار بضع ثوانٍ وإعادة إرسال السؤال.';
+    }
     return res.status(500).json({
-      error: error.message || 'حدث خطأ في محادثة خبير النباتات',
+      error: userMsg,
     });
   }
 });

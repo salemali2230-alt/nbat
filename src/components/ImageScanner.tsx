@@ -101,7 +101,14 @@ export const ImageScanner: React.FC<ImageScannerProps> = ({
       onPlantIdentified(plantData, selectedImage);
     } catch (err: any) {
       console.error('Scan error:', err);
-      setErrorMessage(err.message || 'حدث خطأ أثناء معالجة الصورة في الخادم. يرجى التأكد من جودة الصورة والمحاولة مجدداً.');
+      const rawMsg = String(err?.message || '');
+      if (rawMsg.includes('503') || rawMsg.includes('high demand') || rawMsg.includes('UNAVAILABLE')) {
+        setErrorMessage('تشهد خوادم الذكاء الاصطناعي ضغطاً مؤقتاً في هذه اللحظة. يرجى الانتظار بضع ثوانٍ والضغط مجدداً على زر "فحص النبات واستخراج التقرير".');
+      } else if (rawMsg.startsWith('{') || rawMsg.includes('code":')) {
+        setErrorMessage('حدث ضغط مؤقت في معالجة الصور، يرجى إعادة المحاولة الآن.');
+      } else {
+        setErrorMessage(rawMsg || 'حدث خطأ أثناء معالجة الصورة، يرجى التأكد من وضوح الصورة والمحاولة مجدداً.');
+      }
     } finally {
       setIsAnalyzing(false);
     }
