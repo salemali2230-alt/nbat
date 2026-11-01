@@ -14,6 +14,7 @@ import {
 import { CameraCapture } from './CameraCapture';
 import { PlantData } from '../types/plant';
 import { SAMPLE_IRAQI_PLANTS, SamplePlantItem } from '../data/samplePlants';
+import { getApiBaseUrl } from '../utils/apiConfig';
 
 interface ImageScannerProps {
   onPlantIdentified: (plant: PlantData, imageBase64: string) => void;
@@ -72,7 +73,8 @@ export const ImageScanner: React.FC<ImageScannerProps> = ({
     setErrorMessage(null);
 
     try {
-      const response = await fetch('/api/identify-plant', {
+      const apiUrl = `${getApiBaseUrl()}/api/identify-plant`;
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

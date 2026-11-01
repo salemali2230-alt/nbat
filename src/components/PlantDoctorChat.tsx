@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Sparkles, AlertCircle, Mic, MicOff, Volume2 } from 'lucide-react';
 import { PlantData } from '../types/plant';
+import { getApiBaseUrl, getLiveWsUrl } from '../utils/apiConfig';
 
 interface PlantDoctorChatProps {
   plant: PlantData;
@@ -117,8 +118,7 @@ export const PlantDoctorChat: React.FC<PlantDoctorChatProps> = ({ plant }) => {
       const outputAudioCtx = new AudioContext({ sampleRate: 24000 });
       audioContextRef.current = outputAudioCtx;
 
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/live`;
+      const wsUrl = getLiveWsUrl();
       const ws = new WebSocket(wsUrl);
       liveWsRef.current = ws;
 
@@ -198,7 +198,8 @@ export const PlantDoctorChat: React.FC<PlantDoctorChatProps> = ({ plant }) => {
 
     try {
       // Try streaming endpoint via SSE
-      const response = await fetch('/api/chat-plant/stream', {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/chat-plant/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -210,7 +211,7 @@ export const PlantDoctorChat: React.FC<PlantDoctorChatProps> = ({ plant }) => {
 
       if (!response.ok || !response.body) {
         // Fallback to standard endpoint
-        const fallbackRes = await fetch('/api/chat-plant', {
+        const fallbackRes = await fetch(`${baseUrl}/api/chat-plant`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
