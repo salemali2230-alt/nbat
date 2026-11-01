@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && cp index.html dist/index.html && cp -r dist/assets . && cp dist/assets/bundle.js assets/index-DQpDWNuy.js && cp dist/assets/main.css assets/index-DzRPmVJQ.css",
+    "build": "vite build && cp index.html dist/index.html && cp -r dist/assets . && cp dist/assets/index-DQpDWNuy.js assets/bundle.js && cp dist/assets/index-DzRPmVJQ.css assets/main.css",
     "start": "node server.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist",

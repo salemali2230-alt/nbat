@@ -12,9 +12,9 @@ export default defineConfig(() => {
       rollupOptions: {
         input: path.resolve(__dirname, 'src/main.tsx'),
         output: {
-          entryFileNames: 'assets/bundle.js',
+          entryFileNames: 'assets/index-DQpDWNuy.js',
           chunkFileNames: 'assets/[name].js',
-          assetFileNames: 'assets/[name].[ext]',
+          assetFileNames: 'assets/index-DzRPmVJQ.[ext]',
         },
       },
     },
