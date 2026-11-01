@@ -10,6 +10,7 @@ export default defineConfig(() => {
     build: {
       outDir: 'dist',
       rollupOptions: {
+        input: path.resolve(__dirname, 'src/main.tsx'),
         output: {
           entryFileNames: 'assets/bundle.js',
           chunkFileNames: 'assets/[name].js',

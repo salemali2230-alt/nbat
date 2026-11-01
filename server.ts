@@ -455,6 +455,10 @@ async function startServer() {
       const url = req.originalUrl;
       try {
         let template = fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
+        // In local development, swap production bundle reference for live Vite TypeScript entry
+        template = template
+          .replace('<script type="module" crossorigin src="./assets/bundle.js"></script>', '<script type="module" src="/src/main.tsx"></script>')
+          .replace('<link rel="stylesheet" crossorigin href="./assets/main.css">', '');
         template = await vite.transformIndexHtml(url, template);
         res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
       } catch (e: any) {

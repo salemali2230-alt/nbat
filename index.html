@@ -12,26 +12,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" crossorigin href="./assets/main.css">
+    <script type="module" crossorigin src="./assets/bundle.js"></script>
   </head>
   <body class="bg-emerald-950/5 text-stone-800 antialiased font-['Cairo',sans-serif] selection:bg-emerald-600 selection:text-white">
     <div id="root"></div>
-
-    <script type="module">
-      // Check if running on static hosting (e.g. GitHub Pages) or local dev server
-      if (window.location.hostname.includes('github.io') || window.location.protocol === 'file:') {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = './assets/main.css';
-        document.head.appendChild(link);
-
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.src = './assets/bundle.js';
-        document.head.appendChild(script);
-      } else {
-        import('/src/main.tsx');
-      }
-    </script>
   </body>
 </html>
-
